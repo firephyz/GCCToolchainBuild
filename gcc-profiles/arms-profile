@@ -1,0 +1,49 @@
+MULTILIB_OPTIONS=\
+    marm/mthumb\
+    march=armv7-a+sec/march=armv7-a+sec+simd/march=armv7-r+idiv/march=armv7-r+vfpv3-d16-fp16+idiv/march=armv8-a+crc/march=armv8-a+crc+simd\
+    mfloat-abi=soft/mfloat-abi=softfp/mfloat-abi=hard
+MULTILIB_DIRNAMES=arm thumb v7-a v7-a v7-r v7-r v8-a v8-a soft softfp hard
+MULTILIB_MATCHES=
+MULTILIB_EXCEPTIONS=\
+    *marm/*march=armv7-a+sec/*mfloat-abi=softfp\
+    *marm/*march=armv7-a+sec/*mfloat-abi=hard\
+    *marm/*march=armv7-r+idiv/*mfloat-abi=softfp\
+    *marm/*march=armv7-r+idiv/*mfloat-abi=hard\
+    *marm/*march=armv8-a+crc/*mfloat-abi=softfp\
+    *marm/*march=armv8-a+crc/*mfloat-abi=hard\
+    *mthumb/*march=armv7-a+sec/*mfloat-abi=softfp\
+    *mthumb/*march=armv7-a+sec/*mfloat-abi=hard\
+    *mthumb/*march=armv7-r+idiv/*mfloat-abi=softfp\
+    *mthumb/*march=armv7-r+idiv/*mfloat-abi=hard\
+    *mthumb/*march=armv8-a+crc/*mfloat-abi=softfp\
+    *mthumb/*march=armv8-a+crc/*mfloat-abi=hard\		   
+MULTILIB_EXTRA_OPTS=
+MULTILIB_EXCLUSIONS=
+MULTILIB_OSDIRNAMES=
+MULTILIB_REQUIRED=\
+    marm/march=armv7-a+sec/mfloat-abi=soft\
+    marm/march=armv7-r+idiv/mfloat-abi=soft\
+    marm/march=armv8-a+crc/mfloat-abi=soft\
+    marm/march=armv7-a+sec+simd/mfloat-abi=softfp\
+    marm/march=armv7-a+sec+simd/mfloat-abi=hard\
+    marm/march=armv7-r+vfpv3-d16-fp16+idiv/mfloat-abi=softfp\
+    marm/march=armv7-r+vfpv3-d16-fp16+idiv/mfloat-abi=hard\
+    marm/march=armv8-a+crc+simd/mfloat-abi=softfp\
+    marm/march=armv8-a+crc+simd/mfloat-abi=hard\
+    mthumb/march=armv7-a+sec/mfloat-abi=soft\
+    mthumb/march=armv7-r+idiv/mfloat-abi=soft\
+    mthumb/march=armv8-a+crc/mfloat-abi=soft\
+    mthumb/march=armv7-a+sec+simd/mfloat-abi=softfp\
+    mthumb/march=armv7-a+sec+simd/mfloat-abi=hard\
+    mthumb/march=armv7-r+vfpv3-d16-fp16+idiv/mfloat-abi=softfp\
+    mthumb/march=armv7-r+vfpv3-d16-fp16+idiv/mfloat-abi=hard\
+    mthumb/march=armv8-a+crc+simd/mfloat-abi=softfp\
+    mthumb/march=armv8-a+crc+simd/mfloat-abi=hard
+MULTILIB_DIRNAME=
+MULTILIB_REUSE=\
+    marm/march.armv7-a+sec/mfloat-abi.soft=marm/march.armv7-a+sec+simd/mfloat-abi.soft\
+    marm/march.armv7-r+idiv/mfloat-abi.soft=marm/march.armv7-r+vfpv3-d16-fp16+idiv/mfloat-abi.soft\
+    marm/march.armv8-a+crc/mfloat-abi.soft=marm/march.armv8-a+crc+simd/mfloat-abi.soft\
+    mthumb/march.armv7-a+sec/mfloat-abi.soft=mthumb/march.armv7-a+sec+simd/mfloat-abi.soft\
+    mthumb/march.armv7-r+idiv/mfloat-abi.soft=mthumb/march.armv7-r+vfpv3-d16-fp16+idiv/mfloat-abi.soft\
+    mthumb/march.armv8-a+crc/mfloat-abi.soft=mthumb/march.armv8-a+crc+simd/mfloat-abi.soft

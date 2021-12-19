@@ -1,0 +1,25 @@
+MULTILIB_OPTIONS=\
+    marm/mthumb\
+    march=march=armv8-a+crc/march=armv8-a+crc+simd\
+    mfloat-abi=soft/mfloat-abi=softfp/mfloat-abi=hard
+MULTILIB_DIRNAMES=arm thumb v8-a v8-a soft softfp hard
+MULTILIB_MATCHES=
+MULTILIB_EXCEPTIONS=\
+    *marm/*march=armv8-a+crc/*mfloat-abi=softfp\
+    *marm/*march=armv8-a+crc/*mfloat-abi=hard\
+    *mthumb/*march=armv8-a+crc/*mfloat-abi=softfp\
+    *mthumb/*march=armv8-a+crc/*mfloat-abi=hard\		   
+MULTILIB_EXTRA_OPTS=
+MULTILIB_EXCLUSIONS=
+MULTILIB_OSDIRNAMES=
+MULTILIB_REQUIRED=\
+    marm/march=armv8-a+crc/mfloat-abi=soft\
+    marm/march=armv8-a+crc+simd/mfloat-abi=softfp\
+    marm/march=armv8-a+crc+simd/mfloat-abi=hard\
+    mthumb/march=armv8-a+crc/mfloat-abi=soft\
+    mthumb/march=armv8-a+crc+simd/mfloat-abi=softfp\
+    mthumb/march=armv8-a+crc+simd/mfloat-abi=hard
+MULTILIB_DIRNAME=
+MULTILIB_REUSE=\
+    marm/march.armv8-a+crc/mfloat-abi.soft=marm/march.armv8-a+crc+simd/mfloat-abi.soft\
+    mthumb/march.armv8-a+crc/mfloat-abi.soft=mthumb/march.armv8-a+crc+simd/mfloat-abi.soft

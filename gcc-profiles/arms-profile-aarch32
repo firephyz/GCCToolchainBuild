@@ -1,0 +1,20 @@
+# TARGET_DEFAULT_FLOAT_ABI=ARM_FLOAT_ABI_HARD
+
+MULTILIB_OPTIONS=\
+    marm/mthumb\
+    march=armv7-a+sec+simd/march=armv7-r+vfpv3-d16-fp16+idiv/march=armv8-a+crc+simd
+MULTILIB_DIRNAMES=arm thumb v7-a v7-r v8-a
+MULTILIB_MATCHES=
+MULTILIB_EXCEPTIONS=
+MULTILIB_EXTRA_OPTS=
+MULTILIB_EXCLUSIONS=
+MULTILIB_OSDIRNAMES=
+MULTILIB_REQUIRED=\
+    marm/march=armv7-a+sec+simd\
+    marm/march=armv7-r+vfpv3-d16-fp16+idiv\
+    marm/march=armv8-a+crc+simd\
+    mthumb/march=armv7-a+sec+simd\
+    mthumb/march=armv7-r+vfpv3-d16-fp16+idiv\
+    mthumb/march=armv8-a+crc+simd
+MULTILIB_DIRNAME=
+MULTILIB_REUSE=
