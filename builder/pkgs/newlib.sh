@@ -9,6 +9,7 @@ do_pkg_setup() {
     arg_list=$(parse_arg_string "${1}" "${all_opt_args}") && eval "${arg_list}" || exit 1
 
     CFLAGS='-ffunction-sections -g -Os'
+    CFLAGS+=' -fno-short-enums'
     if [[ ! -z ${bootstrap_args+set} ]]; then
 	PREFIX=${TOOL_SYSROOT}
     else
@@ -80,12 +81,12 @@ do_pkg_pre_build() {
 	cat $makefile | sed ${LN}s/:.*/:/';'$(($LN+1)),$(($LN+2))d -i $makefile;
     done
 
-    # Make sure arm-none-eabi libs are built with FPU support
-    if [[ ${TARGET} == arm-none-eabi ]]; then
-	for f in $(find ${BUILD_DIR}/${TARGET}/ | grep -E "(newlib|libgloss)/Makefile"); do
-	    sed -i -r '/print-multi-lib/{:loop; n;/^[ \t]*flags/{s/; \\/" -mfloat-abi=hard"; \\/; b};b loop}' $f
-	done
-    fi
+    # # Make sure arm-none-eabi libs are built with FPU support
+    # if [[ ${TARGET} == arm-none-eabi ]]; then
+    # 	for f in $(find ${BUILD_DIR}/${TARGET}/ | grep -E "(newlib|libgloss)/Makefile"); do
+    # 	    sed -i -r '/print-multi-lib/{:loop; n;/^[ \t]*flags/{s/; \\/" -mfloat-abi=hard"; \\/; b};b loop}' $f
+    # 	done
+    # fi
 }
 
 do_pkg_build() {
@@ -130,6 +131,8 @@ do_pkg_install() {
                           |rdimon-crt0-v2m.o|rdimon-crt0.o|rdpmon-crt0.o|libgloss-linux.a
                           |redboot.ld|redboot-syscalls.o'
 	    multidirs="v7-r|v7-a|v8-a"
+	    arm_thumb="arm|thumb"
+	    hard_soft="hard|soft"
 	    ;;
 	aarch64-none-elf )
 	    unneeded_objs='cpu-init|rdimon.specs|aem-ve.specs|aem-validation.specs
@@ -137,7 +140,11 @@ do_pkg_install() {
 	    multidirs=".|ilp32"
 	    ;;
     esac
-    unneeded_objs=$(echo ${unneeded_objs} | sed -r 's/[ ]*|[ ]*//g')
-    excludes=".*(${multidirs})/(${unneeded_objs}).*"
+    unneeded_objs=$(echo ${unneeded_objs} | sed -r 's/[ ]*\|[ ]*/|/g')
+    arm_thumb=${arm_thumb+(${arm_thumb})/}
+    hard_soft=${hard_soft+(${hard_soft})/}
+    echo ${unneeded_objs}
+    excludes=".*${arm_thumb}(${multidirs})/${hard_soft}(${unneeded_objs}).*"
+    echo ${excludes}
              
 }

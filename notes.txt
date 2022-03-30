@@ -1,0 +1,38 @@
+
+remove all-target-libgcc dep on the Makefile configure-target-libstdc++v3
+remove enabling of enable_dlopen
+  - used: ~11760 :     if test "x$enable_dlopen" != xyes; then
+add target around 48467 in the case match list
+  - turn off gcc_no_link in case statement
+
+(goto-line 71000)
+(exchange-point-and-mark)
+
+
+(defun test ()
+  (let ((match (funcall show-paren-data-function)))
+    (set-mark (caddr match))
+    (exchange-point-and-mark)))
+
+48467:    *-linux* | *-uclinux* | *-gnu* | *-kfreebsd*-gnu | *-cygwin* | *-solaris*)
+
+
+/home/builder/rpmbuild/BUILD/gcc-10.1.0/libstdc++-v3/configure --srcdir=/home/builder/rpmbuild/BUILD/gcc-10.1.0/libstdc++-v3 --cache-file=./config.cache --with-cross-host=x86_64-pc-linux-gnu --prefix=/home/builder/rpmbuild/BUILDROOT/tools --enable-multilib --disable-shared --disable-libssp --disable-libquadmath --disable-tm-clone-registry --with-multilib-list=@arms-profile-aarch32 --without-headers --enable-languages=c,c++,lto --program-transform-name=s&^&arm-none-eabi-& --disable-option-checking --with-target-subdir=arm-none-eabi --build=x86_64-pc-linux-gnu --host=arm-none-eabi --target=arm-none-eabi
+
+
+
+
+2022/03/30
+  Specs likely outdated since recent merge of libgcc and gcc build tools
+  
+  From original scripts/ directory: notes.txt
+    Override in libgcc to remove extra '-g' flag
+    LIBGCC2_DEBUG_CFLAGS
+    
+    Adjust GCC_FLAGS in gcc/libgcc.mvars to remove '-g' and '-O2'
+    
+    CFLAGS_FOR_TARGET is used when making a 'native' (non-multi-do) version of the target which then calls multi-do with those as the target CFLAGS
+      - If building multi-do directory, just use CFLAGS
+    
+    Replace MULTIDIRS makefile variable with fewer multidirs
+    sed -r '325s/(MULTIDIRS = .*?)( [^ ]+){16}/\1/' -i arm-none-eabi/newlib/Makefile

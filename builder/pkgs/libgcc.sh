@@ -10,6 +10,8 @@ do_pkg_setup() {
     arg_list=$(parse_arg_string "${1}" "${all_opt_args}") && eval "${arg_list}" || exit 1
 
     CFLAGS='-ffunction-sections -g -Os'
+    # Make enums default to 32-bits wide to increase portability, don't optimize size.
+    CFLAGS+=' -fno-short-enums'
     BUILD_DIR=$(readlink -f ~/rpmbuild/BUILD/gcc-build)
     IS_CPP_PHASE=$(test -z ${cpp_phase_args+set} && echo no || echo yes)
 
@@ -65,27 +67,31 @@ do_pkg_configure() {
 
     # just building target items here
     [ ! -z ${fast_args+set} ] && NBUILD_CPUS=12
-    do_make ${CONF_TARGET} .
+    do_make ${CONF_TARGET} . && exit 1
     NBUILD_CPUS=1
 
     # Force optimize for size. Makefile orders the flags weird and keeps stray O2's around
+    set -x
     if [[ no == ${IS_CPP_PHASE} ]]; then
 	for f in $(find ${BUILD_DIR}/${TARGET}/ -regex ".*${BUILD_SUBDIR}/Makefile"); do
 	    line_num=$(cat $f | grep -nE "^LIBGCC2_CFLAGS" | sed s/:.*//)
 	    # rename the actual LIBGCC2_CFLAGS variable
+	    echo DXX
 	    sed ${line_num}'{s/LIBGCC2_CFLAGS/_LIBGCC2_CFLAGS_/}' -i $f
+	    echo EXX
 	    # alias the LIBGCC2_CFLAGS variable with a new one that filters out the unwanted flags
             sed $((${line_num} - 1))'{s/$/\nLIBGCC2_CFLAGS = $(filter-out -O2 -g,$(_LIBGCC2_CFLAGS_))/}' -i $f
+	    echo FXX
 	done
     fi
 
     # Customize target-specific Makefiles as necessary
     case ${TARGET} in
 	arm-none-eabi )
-	    # Make sure arm-none-eabi libs are built with FPU support
-	    for f in $(find ${BUILD_DIR}/${TARGET}/ | grep ${BUILD_SUBDIR}/Makefile); do
-		sed -i -r '/print-multi-lib/{:loop; n;/^[ \t]*flags/{s/; \\/" -mfloat-abi=hard"; \\/; b};b loop}' $f
-	    done
+	    # # Make sure arm-none-eabi libs are built with FPU support
+	    # for f in $(find ${BUILD_DIR}/${TARGET}/ | grep ${BUILD_SUBDIR}/Makefile); do
+	    # 	sed -i -r '/print-multi-lib/{:loop; n;/^[ \t]*flags/{s/; \\/" -mfloat-abi=hard"; \\/; b};b loop}' $f
+	    # done
 	    ;;
 	aarch64-none-elf ) : ;;
     esac
@@ -110,5 +116,7 @@ do_pkg_install() {
 	aarch64-none-elf ) do_make install ${TARGET}/${BUILD_SUBDIR}/ ;;
     esac
 
-    excludes=""
+    if [[ ${IS_CPP_PHASE} -eq yes ]]; then
+	excludes="^share.*"
+    fi
 }

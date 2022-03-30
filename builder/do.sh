@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+# set -x
+
 rpm-dev-path() {
     RPMBUILD_DIR=/home/builder/rpmbuild
     echo $(readlink -f ${RPMBUILD_DIR}/"${1}")
@@ -96,7 +98,21 @@ case ${action} in
     clean )               action_clbk=do_clean               ;;
     make )                action_clbk=do_manual_make         ;;
     call )                action_clbk=do_manual_call         ;;
-    *) echo Unknown command && exit 1;;
+    *)
+	echo Unknown command
+	echo "  Available commands:
+    setup
+    configure (cfg)
+    prebuild (pbld)
+    build
+    make_install (minst)
+    install
+    package (pkg)
+    all
+    clean
+    make
+    call"
+	exit 1
 esac
 
 # Load the package and setup for the build

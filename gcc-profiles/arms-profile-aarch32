@@ -2,19 +2,44 @@
 
 MULTILIB_OPTIONS=\
     marm/mthumb\
-    march=armv7-a+sec+simd/march=armv7-r+vfpv3-d16-fp16+idiv/march=armv8-a+crc+simd
-MULTILIB_DIRNAMES=arm thumb v7-a v7-r v8-a
-MULTILIB_MATCHES=
+    march=armv7-a/march=armv7-r/march=armv8-a/march=armv7-a+simd/march=armv7-r+vfpv3-d16-fp16/march=armv8-a+simd\
+    mfloat-abi=soft/mfloat-abi=hard
+MULTILIB_DIRNAMES=arm thumb v7-a v7-r v8-a v7-a v7-r v8-a soft hard
+MULTILIB_MATCHES=\
+    march?armv7-a=march?armv7-a+sec\
+    march?armv7-a+simd=march?armv7-a+sec+simd\
+    march?armv7-r=march?armv7-r+idiv\
+    march?armv7-r+vfpv3-d16-fp16=march?armv7-r+vfpv3-d16-fp16+idiv\
+    march?armv8-a=march?armv8-a+crc\
+    march?armv8-a+simd=march?armv8-a+crc+simd
 MULTILIB_EXCEPTIONS=
 MULTILIB_EXTRA_OPTS=
-MULTILIB_EXCLUSIONS=
+MULTILIB_EXCLUSIONS=\
+    marm/march=armv7-a/mfloat-abi=hard\
+    marm/march=armv7-r/mfloat-abi=hard\
+    marm/march=armv8-a/mfloat-abi=hard\
+    mthumb/march=armv7-a/mfloat-abi=hard\
+    mthumb/march=armv7-r/mfloat-abi=hard\
+    mthumb/march=armv8-a/mfloat-abi=hard\
+    marm/march=armv7-a+simd/mfloat-abi=soft\
+    marm/march=armv7-r+vfpv3-d16-fp16/mfloat-abi=soft\
+    marm/march=armv8-a+simd/mfloat-abi=soft\
+    mthumb/march=armv7-a+simd/mfloat-abi=soft\
+    mthumb/march=armv7-r+vfpv3-d16-fp16/mfloat-abi=soft\
+    mthumb/march=armv8-a+simd/mfloat-abi=soft
 MULTILIB_OSDIRNAMES=
 MULTILIB_REQUIRED=\
-    marm/march=armv7-a+sec+simd\
-    marm/march=armv7-r+vfpv3-d16-fp16+idiv\
-    marm/march=armv8-a+crc+simd\
-    mthumb/march=armv7-a+sec+simd\
-    mthumb/march=armv7-r+vfpv3-d16-fp16+idiv\
-    mthumb/march=armv8-a+crc+simd
+    marm/march=armv7-a/mfloat-abi=soft\
+    marm/march=armv7-r/mfloat-abi=soft\
+    marm/march=armv8-a/mfloat-abi=soft\
+    mthumb/march=armv7-a/mfloat-abi=soft\
+    mthumb/march=armv7-r/mfloat-abi=soft\
+    mthumb/march=armv8-a/mfloat-abi=soft\
+    marm/march=armv7-a+simd/mfloat-abi=hard\
+    marm/march=armv7-r+vfpv3-d16-fp16/mfloat-abi=hard\
+    marm/march=armv8-a+simd/mfloat-abi=hard\
+    mthumb/march=armv7-a+simd/mfloat-abi=hard\
+    mthumb/march=armv7-r+vfpv3-d16-fp16/mfloat-abi=hard\
+    mthumb/march=armv8-a+simd/mfloat-abi=hard
 MULTILIB_DIRNAME=
 MULTILIB_REUSE=

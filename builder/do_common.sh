@@ -75,10 +75,17 @@ do_make_install() {
     
     type do_pkg_install 2>1 1>/dev/null && do_pkg_install "${do_pkg_install_subargs}" || true
 
+    pushd ${INSTALL_DIR}/${PREFIX}
     # Clean up exclude files
     echo "${excludes}" | while read exclude; do
-	rm -rvf $(find ${INSTALL_DIR} -regextype posix-extended -regex "${exclude}" | tac)
+	# rm -rvf $(find . -regextype posix-extended -regex | sed -r 's/..//' | grep -E "${exclude}" | tac)
+	if [[ -z "${exclude}" ]]; then
+	    echo Warning: Empty exclude field post- package install.;
+	else
+	    rm -rfv $(find . | sed -r 's/..//' | grep -E "${exclude}" | tac);
+	fi
     done
+    popd
 }
 
 do_package() {
@@ -188,6 +195,16 @@ do_clean() {
 	    ;;
 	* )
 	    echo Unknown clean target ${1}
+	    echo "  Targets: 
+    tools                    - host tool sysroot
+    target_sysroot           - target sysroot
+    local_root               - local buildroot in rpmbuild/.buildroot
+    all_roots                - all root clean targets
+    build                    - build directory and the config override file
+    install install_dir      - the build-local install directory
+    workdirs build install   - working directories; build and local install
+    extract extract_dir      - source extract dir
+    all_pkg workdirs extract - all package work dirs and extract dir"
 	    ;;
     esac
 }
