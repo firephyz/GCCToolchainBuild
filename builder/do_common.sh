@@ -104,6 +104,7 @@ do_package() {
 
     # Generate install file list
     find ${INSTALL_DIR}${PREFIX} ! -type d | sed "s/$(sedify_string ${INSTALL_DIR}${PREFIX}/)//" | sort > ${FILELIST}
+    echo FILELIST ${FILELIST}
 
     # Package files
     tar -C ${INSTALL_DIR}${PREFIX} -czvf ${INSTALL_DIR}/${TARBALL} .
@@ -174,9 +175,12 @@ do_clean() {
 	    bash ${SCRIPT_PATH} ${PKG_NAME} clean local_bin
 	    ;;
 	# working directories
+	config )
+	    rm -vf ${BUILD_CONFIG_FILE_PATH}
+	    ;;
         build )
 	    rm -vrf ${BUILD_DIR}
-	    rm -vf ${OVERRIDE_FILE_PATH}
+	    bash ${SCRIPT_PATH} ${PKG_NAME} clean config
 	    ;;
         install )
 	    rm -vrf ${INSTALL_DIR}
@@ -189,6 +193,7 @@ do_clean() {
 	extract )
 	    rm -rfv ${EXTRACT_DIR}
 	    ;;
+	
 	all_pkg )
 	    bash ${SCRIPT_PATH} ${PKG_NAME} clean workdirs
 	    bash ${SCRIPT_PATH} ${PKG_NAME} clean extract
@@ -198,7 +203,7 @@ do_clean() {
 	    echo "  Targets: 
     tools                    - host tool sysroot
     target_sysroot           - target sysroot
-    local_root               - local buildroot in rpmbuild/.buildroot
+    local_root               - local buildroot in <TOP_BUILD_DIR>/.buildroot
     all_roots                - all root clean targets
     build                    - build directory and the config override file
     install install_dir      - the build-local install directory
@@ -313,8 +318,8 @@ sedify_string() {
 save_overrides() {
     overrides="${1}"
     
-    if [[ -e ${OVERRIDE_FILE_PATH} ]]; then
-        saved_overrides=$(cat ${OVERRIDE_FILE_PATH})
+    if [[ -e ${BUILD_CONFIG_FILE_PATH} ]]; then
+        saved_overrides=$(cat ${BUILD_CONFIG_FILE_PATH})
     else
 	saved_overrides=
     fi
@@ -325,7 +330,7 @@ save_overrides() {
     # remove to-be-updated variable overrides from the current saved overrides
     saved_overrides=$(echo "${saved_overrides}" | grep -vE "^(${new_override_vars_grep_string})")
     # put non-updated overrides back into file
-    echo "${saved_overrides}" > ${OVERRIDE_FILE_PATH}
+    echo "${saved_overrides}" > ${BUILD_CONFIG_FILE_PATH}
 
     # construct <var>=<value>; eval strings for each override and put it in the file
     overrides_eval_string=
@@ -333,7 +338,7 @@ save_overrides() {
 	var_value_string="${var}=\"${!var}\";"
         overrides_eval_string=$(echo -e "${var_value_string}\n${overrides_eval_string}")
     done
-    echo "${overrides_eval_string}" >> ${OVERRIDE_FILE_PATH}
+    echo "${overrides_eval_string}" >> ${BUILD_CONFIG_FILE_PATH}
 }
 
 ####################################################################################################

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 PKG_NAME=binutils
-PKG_EXTRACT_DIR_NAME=binutils-2.34
-PKG_TARBALL_NAME=binutils-2.34.tar.xz
+PKG_EXTRACT_DIR_NAME=binutils-2.38
+PKG_TARBALL_NAME=binutils-2.38.tar.gz
 
 do_pkg_setup() {
     all_opt_args="target bootstrap"

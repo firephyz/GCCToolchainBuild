@@ -1,17 +1,18 @@
 #!/bin/bash
 
 PKG_NAME=newlib
-PKG_EXTRACT_DIR_NAME=newlib-4.0.0
-PKG_TARBALL_NAME=newlib-4.0.0.tar.gz
+PKG_EXTRACT_DIR_NAME=newlib-4.1.0
+PKG_TARBALL_NAME=newlib-4.1.0.tar.gz
 
 do_pkg_setup() {
     all_opt_args="single bootstrap target"
     arg_list=$(parse_arg_string "${1}" "${all_opt_args}") && eval "${arg_list}" || exit 1
 
     CFLAGS='-ffunction-sections -g -Os'
-    CFLAGS+=' -fno-short-enums'
+    # CFLAGS+=' -fno-short-enums'
     if [[ ! -z ${bootstrap_args+set} ]]; then
 	PREFIX=${TOOL_SYSROOT}
+	PKG_EXTRA_TAR_INFO=bootstrap
     else
 	PREFIX=${TARGET_SYSROOT}
     fi
@@ -23,7 +24,7 @@ do_pkg_setup() {
 	* ) echo Invalid target name ${target_args} && exit 1 ;;
     esac
 
-    save_overrides "CFLAGS PREFIX TARGET"
+    save_overrides "CFLAGS PREFIX TARGET PKG_EXTRA_TAR_INFO"
 
     # Override source for a single multidir if testing
     if [[ ! -z ${single_args+_} ]]; then

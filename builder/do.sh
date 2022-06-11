@@ -1,27 +1,20 @@
 #!/bin/bash
 set -e
 
-# set -x
-
-rpm-dev-path() {
-    RPMBUILD_DIR=/home/builder/rpmbuild
-    echo $(readlink -f ${RPMBUILD_DIR}/"${1}")
-}
-
 # Config globals
-# TARGET_SYSROOT=/custom
-TARGET_SYSROOT=$(rpm-dev-path BUILDROOT/root)
-TOOL_SYSROOT=$(rpm-dev-path BUILDROOT/tools)
+DIR_PREFIX=/home/kyle/dev/GCCToolchainBuild/build
+TARGET_SYSROOT=${DIR_PREFIX}/root
+TOOL_SYSROOT=${DIR_PREFIX}/tools-sysroot
 CFLAGS=
 
 # Constants
 SCRIPT_PATH=$(readlink -f ${0})
-SOURCE_DIR=$(rpm-dev-path SOURCES)
-PKG_DIR=$(rpm-dev-path pkgs)
-LOCAL_BUILD_ROOT=$(rpm-dev-path .buildroot)
+SOURCE_DIR=${DIR_PREFIX}/sources
+PKG_DIR=${DIR_PREFIX}/pkgs
+LOCAL_BUILD_ROOT=${DIR_PREFIX}/.buildroot
 
 # Runtime globals
-NBUILD_CPUS=1
+NBUILD_CPUS=8
 
 # processes input script args
 process_args() {
@@ -53,20 +46,32 @@ pre_build_pkg_setup() {
     . pkgs/${pkgname}.sh
 
     # # Load pkg-specific overrides
-    [ -z ${OVERRIDE_FILE} ] && OVERRIDE_FILE=${PKG_NAME}
-    OVERRIDE_FILE_PATH=${LOCAL_BUILD_ROOT}/state/${OVERRIDE_FILE}.overrides
-    [ -e ${OVERRIDE_FILE_PATH} ] && eval $(cat ${OVERRIDE_FILE_PATH})
+    BUILD_CONFIG_FILE=${PKG_NAME}
+    BUILD_CONFIG_FILE_PATH=${LOCAL_BUILD_ROOT}/state/${BUILD_CONFIG_FILE}.overrides
+    if [[ ! -f ${BUILD_CONFIG_FILE_PATH} ]]; then
+	if [[ ! -z ${BUILD_CONFIG_INHERIT} ]]; then
+	    cp -v ${LOCAL_BUILD_ROOT}/state/${BUILD_CONFIG_INHERIT}.overrides ${BUILD_CONFIG_FILE_PATH}
+	else
+	    touch ${BUILD_CONFIG_FILE_PATH}
+	fi
+    fi
+    eval $(cat ${BUILD_CONFIG_FILE_PATH})
 
     # Set useful variables
-    [ -z ${BUILD_DIR+set}   ] && BUILD_DIR=$(rpm-dev-path BUILD/${PKG_NAME}-build)
-    EXTRACT_DIR=$(rpm-dev-path BUILD/${PKG_EXTRACT_DIR_NAME})
-    INSTALL_DIR=$(rpm-dev-path BUILD/${PKG_NAME}-install)
-    FILELIST=$(rpm-dev-path scripts/filelists//${PKG_NAME}-${PKG_EXTRA_TAR_INFO}.f)
+    [ -z ${BUILD_DIR+set} ] && BUILD_DIR=${DIR_PREFIX}/BUILD/${PKG_NAME}-build
+    EXTRACT_DIR=${DIR_PREFIX}/BUILD/${PKG_EXTRACT_DIR_NAME}
+    INSTALL_DIR=${DIR_PREFIX}/BUILD/${PKG_NAME}-install
+    if [[ ${FILELIST_OVERRIDE+set} == set ]]; then
+	FILELIST_NAME=${FILELIST_OVERRIDE}-${PKG_EXTRA_TAR_INFO}.f
+    else
+	FILELIST_NAME=${PKG_NAME}-${PKG_EXTRA_TAR_INFO}.f
+    fi
+    [ -z ${FILELIST} ] && FILELIST=${DIR_PREFIX}/filelists/${FILELIST_NAME}
     # Fix tarball extra info suffix (if present) with an extra dash
     if [[ ! -z ${PKG_EXTRA_TAR_INFO} ]]; then
 	PKG_EXTRA_TAR_INFO="-${PKG_EXTRA_TAR_INFO}"
     fi
-    TARBALL=${PKG_NAME}${PKG_EXTRA_TAR_INFO}.tar.gz     
+    [ -z ${TARBALL} ] && TARBALL=${PKG_NAME}${PKG_EXTRA_TAR_INFO}.tar.gz     
 
     # Setup the runtime environment
     mkdir -p ${BUILD_DIR}

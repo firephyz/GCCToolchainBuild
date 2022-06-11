@@ -1,9 +1,9 @@
 #!/bin/bash
 
 PKG_NAME=libgcc
-PKG_EXTRACT_DIR_NAME=gcc-10.1.0
-PKG_TARBALL_NAME=gcc-10.1.0.tar.xz
-OVERRIDE_FILE=gcc
+PKG_EXTRACT_DIR_NAME=gcc-11.3.0
+PKG_TARBALL_NAME=gcc-11.3.0.tar.gz
+BUILD_CONFIG_INHERIT=gcc
 
 do_pkg_setup() {
     all_opt_args="cpp_phase restore"
@@ -11,29 +11,30 @@ do_pkg_setup() {
 
     CFLAGS='-ffunction-sections -g -Os'
     # Make enums default to 32-bits wide to increase portability, don't optimize size.
-    CFLAGS+=' -fno-short-enums'
-    BUILD_DIR=$(readlink -f ~/rpmbuild/BUILD/gcc-build)
+    # CFLAGS+=' -fno-short-enums'
+    BUILD_DIR=$(readlink -f ${DIR_PREFIX}/BUILD/gcc-build)
     IS_CPP_PHASE=$(test -z ${cpp_phase_args+set} && echo no || echo yes)
 
     case ${IS_CPP_PHASE} in
 	yes )
 	    CONF_TARGET=configure-target-libstdc++-v3
 	    BUILD_SUBDIR=libstdc++-v3
-	    FILELIST=libstdc++.f
+	    FILELIST_OVERRIDE=libstdc++
 	    TARBALL=libstdc++.tar.gz
 	    ;;
 	no )
 	    CONF_TARGET=configure-target-libgcc
 	    BUILD_SUBDIR=libgcc
 	    ;;
-    esac    
+    esac
     # PREFIX=${TOOL_SYSROOT}
     # save_overrides "CFLAGS PREFIX BUILD_DIR GCC_BUILD_BACKUP"
     save_overrides "CFLAGS BUILD_DIR IS_CPP_PHASE CONF_TARGET BUILD_SUBDIR"
+    [ ${IS_CPP_PHASE} = yes ] && save_overrides "TARBALL FILELIST_OVERRIDE"
 
     # Setup multilib config
     if [[ ${TARGET} -eq arm-none-eabi ]]; then
-	cp -v $(rpm-dev-path scripts/gcc-profiles/arms-profile-aarch32) ${EXTRACT_DIR}/gcc/config/arm/
+	cp -v ${DIR_PREFIX}/../gcc-profiles/arms-profile-v7-aarch32 ${EXTRACT_DIR}/gcc/config/arm/
     fi
 
     # Restore from a previously saved post all-host build directory
@@ -55,33 +56,29 @@ do_pkg_configure() {
     all_opt_args="fast"
     arg_list=$(parse_arg_string "${1}" "${all_opt_args}") && eval "${arg_list}" || exit 1
 
-    # Make sure libstdc++ libs are installed in the right place
-    if [[ yes == ${IS_CPP_PHASE} ]]; then
-	sed_script=$(echo '/Calculate glibcxx_toolexecdir, glibcxx_toolexeclibdir/'\
-			  '{:loop; n; '\
-			  '/glibcxx_toolexeclibdir='"'"'${toolexecdir}\/lib/{'\
-			  's/lib'"'"'/lib\/$(MULTISUBDIR)'"'"'/;b};'\
-			  'b loop}')
-	sed "${sed_script}" -i.old ${EXTRACT_DIR}/libstdc++-v3/configure
-    fi
+    # # Make sure libstdc++ libs are installed in the right place
+    # if [[ yes == ${IS_CPP_PHASE} ]]; then
+    # 	sed_script=$(echo '/Calculate glibcxx_toolexecdir, glibcxx_toolexeclibdir/'\
+    # 			  '{:loop; n; '\
+    # 			  '/glibcxx_toolexeclibdir='"'"'${toolexecdir}\/lib/{'\
+    # 			  's/lib'"'"'/lib\/$(MULTISUBDIR)'"'"'/;b};'\
+    # 			  'b loop}')
+    # 	sed "${sed_script}" -i.old ${EXTRACT_DIR}/libstdc++-v3/configure
+    # fi
 
     # just building target items here
     [ ! -z ${fast_args+set} ] && NBUILD_CPUS=12
-    do_make ${CONF_TARGET} . && exit 1
+    do_make ${CONF_TARGET} .
     NBUILD_CPUS=1
 
     # Force optimize for size. Makefile orders the flags weird and keeps stray O2's around
-    set -x
     if [[ no == ${IS_CPP_PHASE} ]]; then
 	for f in $(find ${BUILD_DIR}/${TARGET}/ -regex ".*${BUILD_SUBDIR}/Makefile"); do
 	    line_num=$(cat $f | grep -nE "^LIBGCC2_CFLAGS" | sed s/:.*//)
 	    # rename the actual LIBGCC2_CFLAGS variable
-	    echo DXX
 	    sed ${line_num}'{s/LIBGCC2_CFLAGS/_LIBGCC2_CFLAGS_/}' -i $f
-	    echo EXX
 	    # alias the LIBGCC2_CFLAGS variable with a new one that filters out the unwanted flags
             sed $((${line_num} - 1))'{s/$/\nLIBGCC2_CFLAGS = $(filter-out -O2 -g,$(_LIBGCC2_CFLAGS_))/}' -i $f
-	    echo FXX
 	done
     fi
 
@@ -110,6 +107,7 @@ do_pkg_build() {
 do_pkg_install() {
     all_opt_args=
     arg_list=$(parse_arg_string "${1}" "${all_opt_args}") && eval "${arg_list}" || exit 1
+     set -x
 
     case ${TARGET} in
 	arm-none-eabi ) do_multi install ${TARGET}/${BUILD_SUBDIR}/ ;;

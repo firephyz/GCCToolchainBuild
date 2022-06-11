@@ -1,8 +1,8 @@
 #!/bin/bash
 
 PKG_NAME=gcc
-PKG_EXTRACT_DIR_NAME=gcc-10.1.0
-PKG_TARBALL_NAME=gcc-10.1.0.tar.xz
+PKG_EXTRACT_DIR_NAME=gcc-11.3.0
+PKG_TARBALL_NAME=gcc-11.3.0.tar.gz
 
 do_pkg_setup() {
     all_opt_args="support_libs target single bootstrap"
@@ -21,11 +21,11 @@ do_pkg_setup() {
 	aarch64-none-elf ) TARGET=aarch64-none-elf ;;
 	* ) echo Invalid target name ${target_args} && exit 1 ;;
     esac
-    [ set == "${PKG_EXTRA_TAR_INFO+set}" ] && PKG_EXTRA_TAR_INFO="${PKG_EXTRA_TAR_INFO}-"
-    PKG_EXTRA_TAR_INFO="${PKG_EXTRA_TAR_INFO}${TARGET}"
+    BUILD_DIR=${DIR_PREFIX}/BUILD/gcc-build
+    PKG_EXTRA_TAR_INFO="${PKG_EXTRA_TAR_INFO}-${TARGET}"
     GCC_BUILD_BACKUP=$(dirname ${BUILD_DIR})/gcc-bootstrap-build.tar.gz
     IS_BOOTSTRAP=${bootstrap_args+yes}
-    save_overrides "CFLAGS PREFIX TARGET IS_BOOTSTRAP PKG_EXTRA_TAR_INFO GCC_BUILD_BACKUP"
+    save_overrides "CFLAGS PREFIX TARGET IS_BOOTSTRAP PKG_EXTRA_TAR_INFO GCC_BUILD_BACKUP BUILD_DIR"
 
     # Override source for a single multidir if testing
     if [[ ! -z ${single_args+_} ]]; then
@@ -38,8 +38,10 @@ do_pkg_setup() {
 
     # Setup multilib config
     if [[ ${TARGET} -eq arm-none-eabi ]]; then
-	cp -v $(rpm-dev-path scripts/gcc-profiles/arms-profile-aarch32) ${EXTRACT_DIR}/gcc/config/arm/
+	cp -v ${DIR_PREFIX}/../gcc-profiles/arms-profile-v7-aarch32 ${EXTRACT_DIR}/gcc/config/arm/
     fi
+
+    sed -r '3136s/$/\necho dirx \$(BUILD_SYSTEM_HEADER_DIR); \\/' -i ${EXTRACT_DIR}/gcc/Makefile.in
 
     # unpack or build support libs if necessary
     if [[ ! -z ${support_libs_args+_} ]]; then
@@ -69,7 +71,7 @@ do_pkg_configure() {
     fi
 
     case ${TARGET} in
-	arm-none-eabi ) multilib_select=@arms-profile-aarch32 ;;
+	arm-none-eabi ) multilib_select=@arms-profile-v7-aarch32 ;;
 	aarch64-none-elf ) multilib_select=ilp32,lp64 ;;
 	* ) echo Invalid target ${TARGET} && exit 1 ;;
     esac
@@ -78,13 +80,14 @@ do_pkg_configure() {
 	GCC_CUSTOM_ARGS="--without-headers --enable-languages=c,c++"
     else
 	# GCC_CUSTOM_ARGS="--enable-languages=c,c++ --with-newlib --disable-hosted-libstdcxx"
-	GCC_CUSTOM_ARGS="--enable-languages=c,c++ --without-headers --disable-hosted-libstdcxx"
+	# GCC_CUSTOM_ARGS="--enable-languages=c,c++ --with-newlib --disable-hosted-libstdcxx"
+	GCC_CUSTOM_ARGS="--enable-languages=c,c++ --with-newlib"
     fi
 
     # configure the package
     ${EXTRACT_DIR}/configure                                                      \
 	--prefix=${PREFIX}                       			          \
-	--target=${TARGET}						          \
+	--target=arm-none-eabi						          \
 	--enable-multilib							  \
 	--disable-shared							  \
 	--disable-libssp                                                          \
@@ -92,6 +95,8 @@ do_pkg_configure() {
 	--disable-tm-clone-registry                                               \
 	--with-multilib-list=${multilib_select}                                   \
 	${GCC_CUSTOM_ARGS}                                                        \
+	--with-sysroot=${TOOL_SYSROOT}/arm-none-eabi \
+	--with-native-system-header-dir=/include \
 	${SUPPORT_LIB_FLAGS}
 }
 
